@@ -1,6 +1,7 @@
 import React from "react";
 import { useQuery } from "react-query";
 import styled from "styled-components";
+import { useAppContext } from "../../context/AppContext";
 
 interface ListElement {
   color: string;
@@ -26,18 +27,21 @@ const StyledListElement = styled.div<ListElementProps>`
   background-color: ${(props) => props.color};
 `;
 
-const List = ({ currentPage }: { currentPage: number }) => {
-  const { data } = useQuery<ListData>(["productList", currentPage], () => {
+const List = () => {
+  const value = useAppContext();
+  const { setNoTotalPage, selectedPage } = value;
+
+  const { data } = useQuery<ListData>(["productList", selectedPage], () => {
     // fetch("https://reqres.in/api/products/?page=2", {
     return fetch(
-      `https://reqres.in/api/products/?per_page=5&page=${currentPage}`,
+      `https://reqres.in/api/products/?per_page=5&page=${selectedPage}`,
       {
         method: "GET",
       }
     )
       .then((data) => data.json())
       .then((data) => {
-        console.log("Success");
+        setNoTotalPage(data.total_pages);
         return data;
       })
       .catch((error) => {
@@ -45,7 +49,6 @@ const List = ({ currentPage }: { currentPage: number }) => {
       });
   });
 
-  console.log(data);
   return (
     <div>
       {data?.data.map((product) => (
