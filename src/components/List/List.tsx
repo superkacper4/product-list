@@ -1,5 +1,6 @@
 import React from "react";
 import { useQuery } from "react-query";
+import styled from "styled-components";
 
 interface ListElement {
   color: string;
@@ -17,12 +18,23 @@ interface ListData {
   total: number;
 }
 
-const List = () => {
-  const { data } = useQuery<ListData>("productList", () => {
+interface ListElementProps {
+  color: string;
+}
+
+const StyledListElement = styled.div<ListElementProps>`
+  background-color: ${(props) => props.color};
+`;
+
+const List = ({ currentPage }: { currentPage: number }) => {
+  const { data } = useQuery<ListData>(["productList", currentPage], () => {
     // fetch("https://reqres.in/api/products/?page=2", {
-    return fetch("https://reqres.in/api/products", {
-      method: "GET",
-    })
+    return fetch(
+      `https://reqres.in/api/products/?per_page=5&page=${currentPage}`,
+      {
+        method: "GET",
+      }
+    )
       .then((data) => data.json())
       .then((data) => {
         console.log("Success");
@@ -37,7 +49,9 @@ const List = () => {
   return (
     <div>
       {data?.data.map((product) => (
-        <p>{product.name}</p>
+        <StyledListElement key={product.id} color={product.color}>
+          {product.name}
+        </StyledListElement>
       ))}
     </div>
   );
