@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import { useQuery } from "react-query";
 import styled from "styled-components";
 import { useAppContext } from "../../context/AppContext";
@@ -28,11 +29,12 @@ const StyledListElement = styled.div<ListElementProps>`
 `;
 
 const List = () => {
+  const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
+
   const value = useAppContext();
   const { setNoTotalPage, selectedPage } = value;
 
   const { data } = useQuery<ListData>(["productList", selectedPage], () => {
-    // fetch("https://reqres.in/api/products/?page=2", {
     return fetch(
       `https://reqres.in/api/products/?per_page=5&page=${selectedPage}`,
       {
@@ -52,10 +54,22 @@ const List = () => {
   return (
     <div>
       {data?.data.map((product) => (
-        <StyledListElement key={product.id} color={product.color}>
+        <StyledListElement
+          key={product.id}
+          color={product.color}
+          onClick={() => setSelectedProduct(product.id)}
+        >
           {product.name}
         </StyledListElement>
       ))}
+      {selectedProduct &&
+        createPortal(
+          <div>
+            <button onClick={() => setSelectedProduct(null)}>X</button>
+            {selectedProduct}
+          </div>,
+          document.body
+        )}
     </div>
   );
 };
