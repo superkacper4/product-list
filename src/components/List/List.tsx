@@ -3,8 +3,9 @@ import { createPortal } from "react-dom";
 import { useQuery } from "react-query";
 import styled from "styled-components";
 import { useAppContext } from "../../context/AppContext";
+import Modal from "../Modal/Modal";
 
-interface ListElement {
+export interface ListElement {
   color: string;
   id: number;
   name: string;
@@ -26,10 +27,22 @@ interface ListElementProps {
 
 const StyledListElement = styled.div<ListElementProps>`
   background-color: ${(props) => props.color};
+  padding: 5px;
+  margin: 2px 0;
+  text-align: center;
+  cursor: pointer;
+  transition: filter 0.2s;
+
+  &:hover {
+    filter: contrast(200%);
+  }
 `;
 
 const List = () => {
-  const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<ListElement | null>(
+    null
+  );
+  const [idFilter, setIdFilter] = useState<number>(0);
 
   const value = useAppContext();
   const { setNoTotalPage, selectedPage } = value;
@@ -53,21 +66,31 @@ const List = () => {
 
   return (
     <div>
-      {data?.data.map((product) => (
-        <StyledListElement
-          key={product.id}
-          color={product.color}
-          onClick={() => setSelectedProduct(product.id)}
-        >
-          {product.name}
-        </StyledListElement>
-      ))}
+      <input
+        type="number"
+        value={idFilter}
+        onChange={(e) => setIdFilter(Number(e.target.value))}
+      />
+      {data?.data
+        ?.filter((product) => {
+          if (idFilter) return Number(product.id) === idFilter;
+          else return true;
+        })
+        ?.map((product) => (
+          <StyledListElement
+            key={product.id}
+            color={product.color}
+            onClick={() => setSelectedProduct(product)}
+          >
+            {product.name}
+          </StyledListElement>
+        ))}
       {selectedProduct &&
         createPortal(
-          <div>
-            <button onClick={() => setSelectedProduct(null)}>X</button>
-            {selectedProduct}
-          </div>,
+          <Modal
+            product={selectedProduct}
+            setSelectedProduct={setSelectedProduct}
+          />,
           document.body
         )}
     </div>
